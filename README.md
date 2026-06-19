@@ -1,6 +1,8 @@
-# Audit citoyen des promesses politiques
+# Crible
 
-Un outil **open source** et **neutre** qui aide chaque citoyen à auditer un programme ou une personnalité politique — **avec sa propre intelligence artificielle**.
+**Audit citoyen des promesses politiques.** Un outil **open source** et **neutre** qui aide chaque citoyen à auditer un programme ou une personnalité politique — **avec sa propre intelligence artificielle**.
+
+> *« Passer au crible » : examiner chaque promesse avec rigueur, séparer les faits de la rhétorique.*
 
 > L'outil ne juge pas et ne pense pas à votre place. Il **génère une méthode d'audit** (un *prompt* structuré + une liste de sources publiques officielles) que vous collez dans le modèle d'IA de votre choix (ChatGPT, Claude, Le Chat…). Vous gardez la main ; l'outil ne fait que cadrer la rigueur.
 
