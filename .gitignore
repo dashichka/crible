@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# Clever Cloud (lien d'app local, non nécessaire sur GitHub)
+.clever.json
+
+# Logs / divers
+*.log
+node_modules/

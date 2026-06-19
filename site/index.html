@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audit citoyen des promesses politiques — générateur de prompt</title>
+<style>
+  /* Habillage : Cloud Dancer, couleur Pantone de l'année 2026 (blanc serein) + accent sauge non partisan */
+  :root{
+    --cloud:#f0eee8; --cloud-2:#e9e6dd; --surface:#ffffff;
+    --ink:#22282b; --muted:#69706f; --line:#e3dfd4;
+    --accent:#2f6457; --accent-d:#244e44; --accent-soft:#e7f0ec;
+    --warn:#8a5a16; --warnbg:#fbf3e4; --ok:#2f6457; --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+    background:var(--cloud);color:var(--ink);line-height:1.55}
+  header{background:linear-gradient(180deg,#ffffff,var(--cloud));border-bottom:1px solid var(--line);padding:30px 20px}
+  header .wrap{max-width:1120px;margin:0 auto}
+  header h1{margin:0 0 6px;font-size:1.55rem;letter-spacing:-.01em}
+  header p{margin:0;color:var(--muted);font-size:1rem;max-width:760px}
+  .layout{max-width:1120px;margin:0 auto;padding:22px 20px;display:grid;
+    grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+  @media(max-width:880px){.layout{grid-template-columns:1fr}}
+  .right{position:sticky;top:14px}
+  @media(max-width:880px){.right{position:static}}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 18px 20px;box-shadow:0 4px 18px rgba(34,40,43,.05);margin-bottom:18px}
+  h2{font-size:1.06rem;margin:0 0 12px;padding-bottom:9px;border-bottom:1px solid var(--cloud-2);display:flex;align-items:center;gap:8px}
+  h3{font-size:.82rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px}
+  label{display:block;font-size:.92rem;margin:6px 0}
+  input[type=text], textarea, select{width:100%;padding:10px 12px;border:1px solid var(--line);
+    border-radius:9px;font:inherit;background:#fff;color:var(--ink)}
+  input[type=text]:focus,textarea:focus,select:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+  textarea{min-height:120px;resize:vertical}
+  .radio-row{display:flex;flex-wrap:wrap;gap:8px}
+  .pill{border:1px solid var(--line);border-radius:22px;padding:7px 14px;cursor:pointer;
+    font-size:.88rem;background:#fff;user-select:none}
+  .pill input{margin-right:6px}
+  .pill.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .chk{display:flex;align-items:flex-start;gap:9px;padding:8px 10px;border:1px solid var(--line);
+    border-radius:9px;background:#fff;font-size:.88rem;margin:6px 0;cursor:pointer}
+  .chk input{margin-top:3px}
+  .chk small{display:block;color:var(--muted);font-size:.78rem;margin-top:1px}
+  .chk.suggested{border-color:var(--accent);background:var(--accent-soft)}
+  .src-group{margin-bottom:8px}
+  .disclaimer{background:var(--warnbg);border:1px solid #efdcb8;color:var(--warn);
+    border-radius:11px;padding:12px 14px;font-size:.85rem;margin:14px 0 0}
+  .btn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:11px 16px;
+    font:inherit;font-weight:600;cursor:pointer}
+  .btn:hover{background:var(--accent-d)}
+  .btn.sec{background:#fff;color:var(--accent);border:1px solid var(--line);font-weight:500;padding:8px 13px}
+  .btn.sec:hover{background:var(--accent-soft)}
+  .btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .out-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .out textarea{min-height:300px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.79rem;background:#fcfbf8}
+  .checklist a{color:var(--accent-d)}
+  .checklist li{margin:5px 0;font-size:.88rem}
+  .note{font-size:.82rem;color:var(--muted);margin:8px 0}
+  .steps{counter-reset:s;padding-left:0;list-style:none}
+  .steps li{counter-increment:s;margin:9px 0;padding-left:34px;position:relative;font-size:.9rem}
+  .steps li::before{content:counter(s);position:absolute;left:0;top:0;background:var(--accent);color:#fff;
+    width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700}
+  .hidden{display:none}
+  .extra-names input{margin-top:6px}
+  footer{max-width:1120px;margin:0 auto;padding:8px 20px 44px;color:var(--muted);font-size:.79rem}
+  .copied{color:var(--ok);font-size:.82rem;font-weight:700}
+  .swatch{display:inline-block;width:11px;height:11px;border-radius:50%;background:var(--accent);border:1px solid rgba(0,0,0,.1)}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Audit citoyen des promesses politiques</h1>
+    <p>Cet outil ne juge pas et ne pense pas à votre place. Il prépare une méthode d'audit transparente et sourcée que vous exécutez avec l'intelligence artificielle de votre choix. Le résultat se construit en direct, à droite.</p>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="left">
+    <div class="card">
+      <h2>1. Que voulez-vous auditer&nbsp;?</h2>
+      <label for="nom">Nom du candidat ou de la personnalité</label>
+      <input type="text" id="nom" placeholder="ex. Prénom Nom">
+
+      <label class="chk" style="margin-top:10px"><input type="checkbox" id="compare">
+        <span><strong>Comparer plusieurs candidats</strong><small>Applique exactement les mêmes critères à chacun, en tableau comparatif</small></span></label>
+      <div id="extraNames" class="extra-names hidden">
+        <input type="text" id="nom2" placeholder="Candidat 2">
+        <input type="text" id="nom3" placeholder="Candidat 3 (optionnel)">
+      </div>
+
+      <h3>Type d'audit</h3>
+      <div class="radio-row" id="modeRow">
+        <label class="pill on"><input type="radio" name="mode" value="programme" checked>Programme</label>
+        <label class="pill"><input type="radio" name="mode" value="personne">Personne</label>
+        <label class="pill"><input type="radio" name="mode" value="les_deux">Les deux</label>
+      </div>
+
+      <div id="dimsProgramme">
+        <h3>Dimensions du programme</h3>
+        <div id="progDims"></div>
+      </div>
+      <div id="dimsPersonne" class="hidden">
+        <h3>Dimensions de la personne</h3>
+        <div id="persDims"></div>
+      </div>
+
+      <label for="periode" style="margin-top:14px">Période à couvrir</label>
+      <select id="periode">
+        <option value="le mandat ou programme en cours">Le mandat / programme en cours</option>
+        <option value="toute la carrière publique">Toute la carrière publique</option>
+        <option value="une période précise (à indiquer dans votre IA)">Une période précise</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <h2>2. Programme à analyser</h2>
+      <p class="note">Collez le texte du programme (ou des extraits). L'outil détecte les thèmes et <strong>suggère automatiquement</strong> les bonnes sources publiques <em>et</em> les dimensions pertinentes.</p>
+      <textarea id="programme" placeholder="Collez le texte du programme ici…"></textarea>
+    </div>
+
+    <div class="card">
+      <h2>3. Sources publiques à mobiliser</h2>
+      <p class="note">Priorité aux données produites par l'État (neutralité maximale). Les sources suggérées d'après votre texte sont surlignées.</p>
+      <div id="sources"></div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="card out">
+      <div class="out-head">
+        <h2 style="border:0;margin:0">Votre prompt <span class="note" style="font-weight:400">· mis à jour en direct</span></h2>
+        <span class="copied hidden" id="cp1">Copié&nbsp;✓</span>
+      </div>
+      <textarea id="outPrompt" readonly></textarea>
+      <div class="btnrow" style="margin-top:10px">
+        <button class="btn" id="copyPrompt">Copier le prompt</button>
+        <button class="btn sec" id="dlMd">Télécharger .md</button>
+        <button class="btn sec" id="dlTxt">Télécharger .txt</button>
+      </div>
+      <div class="btnrow" style="margin-top:8px">
+        <span class="note" style="margin:0">Copier puis ouvrir dans&nbsp;:</span>
+        <button class="btn sec" data-llm="https://chatgpt.com/">ChatGPT</button>
+        <button class="btn sec" data-llm="https://claude.ai/new">Claude</button>
+        <button class="btn sec" data-llm="https://chat.mistral.ai/chat">Le Chat (Mistral)</button>
+      </div>
+      <p class="note" id="llmNote" style="display:none">Prompt copié ✓ — collez-le (Ctrl/Cmd+V) dans l'onglet qui vient de s'ouvrir, puis ajoutez le programme et les liens.</p>
+    </div>
+
+    <div class="card">
+      <div class="out-head">
+        <h2 style="border:0;margin:0">Sources à fournir à votre IA</h2>
+        <div><button class="btn sec" id="copySrc">Copier la liste</button> <span class="copied hidden" id="cp2">Copié&nbsp;✓</span></div>
+      </div>
+      <ul class="checklist" id="outSources"></ul>
+    </div>
+
+    <div class="card">
+      <h2>Comment l'utiliser</h2>
+      <ol class="steps">
+        <li>Ouvrez l'IA de votre choix (avec accès à Internet de préférence).</li>
+        <li>Collez le prompt, puis le document du programme (PDF ou texte).</li>
+        <li>Fournissez les liens de sources ci-dessus pour permettre la vérification.</li>
+        <li>Lisez le résultat avec esprit critique : aucune IA n'est garantie sans erreur.</li>
+      </ol>
+      <div class="disclaimer">
+        <strong>Neutralité &amp; limites.</strong> Cet outil vise la transparence de la méthode, pas une « objectivité » absolue. Il s'appuie en priorité sur des sources d'État, sépare les faits des interprétations, et refuse d'inventer. Le repérage d'un procédé rhétorique ne signifie jamais qu'un propos est faux. La même grille s'applique à tous les candidats.
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Projet citoyen open source · Données publiques sous Licence Ouverte (Etalab) et équivalents · Aucune donnée collectée : tout se passe dans votre navigateur · <span class="swatch"></span> Habillage « Cloud Dancer », couleur Pantone de l'année 2026.
+</footer>
+
+<script>
+const PROG_DIMS = [
+  {id:"faisabilite", lbl:"Faisabilité budgétaire", desc:"Coût, financement, impact sur le budget — jusqu'au bout du raisonnement", def:true,
+    kw:["budget","coût","cout","milliard","dépense","depense","impôt","impot","taxe","financ","salaire","smic","retraite","cotisation","tva","isf"]},
+  {id:"stats", lbl:"Statistiques citées", desc:"Vérifier les chiffres et sondages cités par le programme", def:true,
+    kw:["%","pour cent","sondage","selon","des français","étude","statistique","ifop","harris"]},
+  {id:"persuasif", lbl:"Langage persuasif", desc:"Repérer les mots à charge émotionnelle (sans juger)", def:true,
+    kw:["enfin","scandale","scandaleux","élite","elite","chantage","joug","honte","menace","trahison","massivement"]},
+  {id:"liens", lbl:"Liens logiques entre promesses", desc:"Comment les promesses se renforcent ou s'annulent", def:true, kw:["nous "]},
+];
+const PERS_DIMS = [
+  {id:"bio", lbl:"Biographie & mandats", desc:"Parcours, fonctions, dates, bord politique", def:true},
+  {id:"declarations", lbl:"Déclarations publiques", desc:"Positions marquantes, datées et citées", def:true},
+  {id:"entourage", lbl:"Entourage & proches", desc:"Mouvement, alliés, figures associées", def:true},
+  {id:"business", lbl:"Activités & intérêts", desc:"Patrimoine, revenus, secteurs (déclaration HATVP)", def:true},
+  {id:"soutiens", lbl:"Associations & soutiens", desc:"Qui le soutient ou le finance", def:false},
+  {id:"international", lbl:"Positionnement international", desc:"Union européenne, États-Unis, Chine, Russie, autres pays", def:true},
+  {id:"voyages", lbl:"Déplacements notables", desc:"Voyages publics documentés", def:false},
+  {id:"coherence", lbl:"Cohérence", desc:"Discours vs parcours vs votes vs intérêts", def:true},
+];
+const SOURCES = [
+  {id:"insee", lbl:"INSEE", cat:"Économie & statistiques", url:"https://www.insee.fr", desc:"Population, emploi, salaires, prix, patrimoine des ménages", kw:["insee","patrimoine","médian","median","prix","inflation","pouvoir d'achat","logement","démograph","demograph"]},
+  {id:"dares", lbl:"DARES (travail)", cat:"Économie & statistiques", url:"https://dares.travail-emploi.gouv.fr", desc:"Emploi, chômage, salariés au SMIC, salaires", kw:["smic","salaire","salarié","salarie","emploi","chômage","chomage","travail","cotisation"]},
+  {id:"drees", lbl:"DREES (santé/social)", cat:"Économie & statistiques", url:"https://drees.solidarites-sante.gouv.fr", desc:"Santé, social, retraites, minima sociaux", kw:["santé","sante","hôpital","hopital","social","allocation","minima","retraite","pension"]},
+  {id:"cor", lbl:"Conseil d'orientation des retraites", cat:"Économie & statistiques", url:"https://www.cor-retraites.fr", desc:"Système et projections des retraites", kw:["retraite","pension","cotisation","annuité","annuite"]},
+  {id:"budget", lbl:"Budget de l'État", cat:"Économie & statistiques", url:"https://www.budget.gouv.fr", desc:"Dépenses, recettes, déficit, dette, loi de finances", kw:["budget","déficit","deficit","dette","dépense","depense","milliard","impôt","impot","loi de finances"]},
+  {id:"data_eco", lbl:"data.economie.gouv.fr", cat:"Économie & statistiques", url:"https://data.economie.gouv.fr", desc:"Données détaillées du budget et de la fiscalité", kw:["impôt","impot","fiscal","taxe","tva","isf","budget","superprofit","héritage","heritage"]},
+  {id:"ccomptes", lbl:"Cour des comptes", cat:"Économie & statistiques", url:"https://www.ccomptes.fr", desc:"Contrôle indépendant des finances publiques", kw:["dépense","depense","budget","gestion","déficit","deficit","finances publiques"]},
+  {id:"eurostat", lbl:"Eurostat", cat:"Économie & statistiques", url:"https://ec.europa.eu/eurostat", desc:"Statistiques européennes comparables (France vs Union européenne)", kw:["europe","européen","europeen","union européenne","comparaison","ue"]},
+  {id:"service_public", lbl:"Service-public.fr", cat:"Économie & statistiques", url:"https://www.service-public.gouv.fr", desc:"Droit en vigueur (montant du SMIC, âge de la retraite…)", kw:["smic","retraite","droit","allocation","impôt","impot"]},
+  {id:"an", lbl:"Assemblée nationale (données ouvertes)", cat:"Vie parlementaire & votes", url:"https://data.assemblee-nationale.fr", desc:"Scrutins nominatifs, amendements, débats", kw:["vote","voté","loi","amendement","assemblée","assemblee","scrutin","député","depute"]},
+  {id:"senat", lbl:"Sénat (données ouvertes)", cat:"Vie parlementaire & votes", url:"https://data.senat.fr", desc:"Dossiers législatifs, votes, débats", kw:["sénat","senat","loi","amendement","vote","sénateur","senateur"]},
+  {id:"nosdeputes", lbl:"NosDéputés / NosSénateurs", cat:"Vie parlementaire & votes", url:"https://www.nosdeputes.fr", desc:"Activité parlementaire normalisée et consultable", kw:["vote","député","depute","participation","amendement","loi"]},
+  {id:"pe", lbl:"Parlement européen (données ouvertes)", cat:"Vie parlementaire & votes", url:"https://data.europarl.europa.eu", desc:"Votes des eurodéputés, procédures européennes", kw:["europe","européen","europeen","eurodéputé","eurodepute","parlement européen","ue"]},
+  {id:"hatvp", lbl:"Haute Autorité pour la transparence (HATVP)", cat:"Intégrité & droit", url:"https://www.hatvp.fr/consulter-les-declarations/", desc:"Déclarations d'intérêts, de patrimoine et de lobbying", kw:["patrimoine","intérêt","interet","conflit","lobbying","fortune","milliardaire"]},
+  {id:"legifrance", lbl:"Légifrance", cat:"Intégrité & droit", url:"https://www.legifrance.gouv.fr", desc:"Lois, décrets, nominations (Journal officiel)", kw:["loi","décret","decret","nomination","code","journal officiel","réforme","reforme"]},
+  {id:"vie_publique", lbl:"Vie-publique.fr", cat:"Intégrité & droit", url:"https://www.vie-publique.fr", desc:"Discours publics, rapports officiels", kw:["discours","rapport","déclaration","declaration","politique publique"]},
+  {id:"elections", lbl:"Résultats des élections (Intérieur)", cat:"Élections", url:"https://www.resultats-elections.interieur.gouv.fr", desc:"Résultats officiels de tous les scrutins", kw:["élection","election","scrutin","résultat","resultat","candidat","voix"]},
+];
+
+function chkHtml(item, type){
+  return `<label class="chk" data-${type}row="${item.id}"><input type="checkbox" data-${type}="${item.id}" ${item.def?"checked":""}>
+    <span><strong>${item.lbl}</strong><small>${item.desc}</small></span></label>`;
+}
+document.getElementById("progDims").innerHTML = PROG_DIMS.map(d=>chkHtml(d,"dim")).join("");
+document.getElementById("persDims").innerHTML = PERS_DIMS.map(d=>chkHtml(d,"dim")).join("");
+const cats = [...new Set(SOURCES.map(s=>s.cat))];
+document.getElementById("sources").innerHTML = cats.map(c=>{
+  const items = SOURCES.filter(s=>s.cat===c).map(s=>chkHtml(s,"src")).join("");
+  return `<div class="src-group"><h3>${c}</h3>${items}</div>`;
+}).join("");
+
+function refreshMode(){
+  const mode = document.querySelector('input[name="mode"]:checked').value;
+  document.getElementById("dimsProgramme").classList.toggle("hidden", mode==="personne");
+  document.getElementById("dimsPersonne").classList.toggle("hidden", mode==="programme");
+  document.querySelectorAll("#modeRow .pill").forEach(p=>p.classList.toggle("on", p.querySelector("input").checked));
+}
+function suggest(){
+  const txt = document.getElementById("programme").value.toLowerCase();
+  if(txt.length<=3) return;
+  document.querySelectorAll('[data-srcrow]').forEach(row=>{
+    const s = SOURCES.find(x=>x.id===row.dataset.srcrow);
+    const hit = s.kw.some(k=>txt.includes(k));
+    row.classList.toggle("suggested", hit);
+    if(hit) row.querySelector("input").checked = true;
+  });
+  PROG_DIMS.forEach(d=>{
+    if(!d.kw) return;
+    const row = document.querySelector('[data-dimrow="'+d.id+'"]');
+    if(!row) return;
+    const hit = d.kw.some(k=>txt.includes(k));
+    row.classList.toggle("suggested", hit);
+    if(hit) row.querySelector("input").checked = true;
+  });
+}
+function selectedDims(){return [...document.querySelectorAll('[data-dim]:checked')].map(c=>c.dataset.dim);}
+function selectedSources(){return [...document.querySelectorAll('[data-src]:checked')].map(c=>SOURCES.find(s=>s.id===c.dataset.src));}
+function dimLabel(id){const a=[...PROG_DIMS,...PERS_DIMS].find(d=>d.id===id);return a?a.lbl:id;}
+function names(){
+  const n=[document.getElementById("nom").value.trim()];
+  if(document.getElementById("compare").checked){
+    [document.getElementById("nom2").value, document.getElementById("nom3").value].forEach(v=>{if(v.trim())n.push(v.trim());});
+  }
+  return n.filter(Boolean);
+}
+function buildPrompt(){
+  const compare = document.getElementById("compare").checked;
+  const noms = names();
+  const nomAff = noms.length ? noms.join(", ") : "[nom du candidat]";
+  const mode = document.querySelector('input[name="mode"]:checked').value;
+  const periode = document.getElementById("periode").value;
+  const dims = selectedDims().map(dimLabel);
+  const srcs = selectedSources();
+  const inclProg = mode==="programme"||mode==="les_deux";
+  const inclPers = mode==="personne"||mode==="les_deux";
+  let p="";
+  p+="RÔLE\nTu es un analyste factuel impartial. Tu n'es pas un acteur politique. Tu confrontes des déclarations et promesses à des sources publiques vérifiables, sans jamais juger.\n\n";
+  if(compare && noms.length>1)
+    p+="MODE COMPARATIF\nTu audites plusieurs candidats ("+noms.join(", ")+"). Tu appliques EXACTEMENT les mêmes critères, sources et niveau d'exigence à chacun. Tu présentes des tableaux comparatifs côte à côte. Tu ne favorises ni ne défavorises personne, et tu signales quand une information existe pour l'un et pas pour l'autre.\n\n";
+  p+="RÈGLE DE LISIBILITÉ (le lecteur est un citoyen, pas une machine)\n- Phrases complètes, compréhensibles tout de suite. Pas de style télégraphique.\n- Aucune abréviation non explicitée (écris « Assemblée nationale », pas « AN »).\n- Contextualise tout nom propre : qui est cette personne, ce parti, ce pays, et son orientation politique documentée.\n\n";
+  p+="VÉRIFICATION ACTIVE ET CALCUL DIRECT\n- Vérifie réellement chaque fait : confronte aux sources fournies et, si tu as accès à Internet, va chercher la donnée publique officielle et cite le lien exact.\n- Quand tu as les chiffres, FAIS le calcul simple toi-même et montre la formule (ex. écart de salaire × nombre de personnes concernées × 12 mois). Présente-le comme un ordre de grandeur et explique pourquoi il diffère des estimations des instituts.\n- N'invente jamais un chiffre. Un coût est tiré d'une source officielle ou attribué à un organisme nommé et daté, avec son lien.\n\n";
+  p+="SOURCES = LIENS CLIQUABLES VÉRIFIÉS\nChaque chiffre est suivi de son lien complet, pas seulement du nom de l'organisme. Vérifie que la page existe ; sinon écris « source non retrouvée » — n'invente jamais de lien.\n\n";
+  p+="NEUTRALITÉ (5 interdits) ET ANTI-DÉSINFORMATION\n1. Aucun jugement sur le candidat. 2. Aucune opinion personnelle (appréciations attribuées à une source nommée + lien). 3. Pas d'alignement sur la tonalité de la question. 4. Couverture équilibrée des lectures possibles. 5. Langage neutre, sans qualificatif valorisant ou dévalorisant.\nNe résume jamais un désaccord par une formule vague (« facteur 3 à 10 selon les instituts ») : nomme chaque organisme, son chiffre et son lien.\n\n";
+  p+="CLASSEMENT DES ÉNONCÉS\n[FAIT VÉRIFIABLE] (source + lien) / [INTERPRÉTATION] (signalée) / [NON ÉTAYÉ]. Une appartenance politique n'est un fait que si elle est sourcée (vote, déclaration officielle, registre).\n\n";
+  if(dims.includes("Statistiques citées"))
+    p+="STATISTIQUES CITÉES PAR LE TEXTE\nPour tout chiffre attribué à un tiers (sondage, étude), vérifie deux fois : (a) selon la source indiquée par le texte, (b) selon une base indépendante. Reprends la citation en phrase complète. Verdict + couleur.\n\n";
+  if(dims.includes("Langage persuasif"))
+    p+="LANGAGE PERSUASIF (analyse rhétorique neutre)\nRepère les mots à charge émotionnelle ou politique. Cite l'extrait exact, nomme le procédé (langage chargé, appel à la peur, appel à l'appartenance, étiquetage, faux dilemme, exagération, slogan…), sans jugement. Ne signale que si le mot ajoute une charge au-delà du sens descriptif. « Chargé émotionnellement » ne veut pas dire « faux ».\n\n";
+  p+="MÉTHODE DE VÉRIFICATION\nBrouillon appuyé sur les citations → questions de contrôle → réponses fondées sur les seules sources → version finale sans le non-étayé.\n\n";
+  p+="LÉGENDE COULEUR (en tête, un seul statut par ligne)\n🟢 Vérifié — confirmé par une source officielle citée et cliquable.\n🟠 À nuancer — partiellement exact, estimation contestée, ou chiffre dépassé (explication obligatoire).\n⚪ Non vérifiable en l'état — donnée non trouvée/non fournie (indique la requête exacte).\n🔴 Contredit — une source officielle affirme le contraire.\n\n";
+  if(inclProg){
+    p+="=== AUDIT DU PROGRAMME : FAISABILITÉ, JUSQU'AU BOUT ===\n";
+    if(dims.includes("Faisabilité budgétaire"))
+      p+="Pour chaque mesure financière, tableau : Mesure | Calcul direct (formule + résultat) | Coût selon les instituts (qui / combien / lien + orientation de l'organisme) | Financement proposé par le candidat (ou « non précisé ») | Impact budgétaire | Statut.\nVa au bout : (1) coût ; (2) décompose tout montant global par personne, en %, rapporté à une base sourcée ; (3) impact budgétaire annoncé par le candidat ET selon ton calcul (coût − financement), puis effet sur le déficit annuel → la dette → la charge de la dette, comparé aux chiffres réels actuels ; (4) impact par catégorie : salariés, employeurs (très petites entreprises / PME / grandes entreprises), indépendants, retraités, État ; (5) explique le mécanisme, et s'il est contesté donne les deux mécanismes opposés sans trancher.\n";
+    if(dims.includes("Liens logiques entre promesses"))
+      p+="LIENS LOGIQUES ENTRE PROMESSES : identifie quand une promesse en renforce ou en annule une autre et expose la chaîne logique reliant les faits, avec les hypothèses de chaque bord. Règle stricte : tu exposes les interactions et tensions, puis tu t'arrêtes. Tu ne conclus jamais — c'est le lecteur qui conclut.\n";
+    p+="Raisonne le solde global sur le programme entier ; si tu n'as qu'un extrait, dis-le.\n\n";
+  }
+  if(inclPers){
+    p+="=== AUDIT DE LA PERSONNE : PROFIL FACTUEL DÉVELOPPÉ ===\nChaque point est un paragraphe développé et contextualisé (pas une liste de mots), avec sources, liens et statut couleur. Dimensions demandées :\n";
+    selectedDims().filter(d=>PERS_DIMS.some(x=>x.id===d)).forEach(d=>p+="- "+dimLabel(d)+"\n");
+    p+="Pour le positionnement international, ventile et explique par bloc : Commission européenne et Union européenne ; pays européens ; États-Unis et OTAN ; Chine ; Russie ; autres pays. Pour la cohérence, mets en regard des faits datés (« a déclaré X en [date] » / « a fait Y en [date] »), sans accusation, en signalant aussi les constances.\nRègle anti-dérive : « influence potentielle » = uniquement des liens factuels documentés. Aucune insinuation.\n\n";
+  }
+  p+="FORMAT DE SORTIE\n1. Légende couleur. 2. Avertissement + périmètre exactement couvert.";
+  if(inclProg)p+=" 3. Tableau des promesses (chaîne budgétaire, décomposition, impact par catégorie, mécanismes). 3bis. Liens logiques entre promesses, sans conclusion. 4. Statistiques citées (citation complète | source indiquée + lien | vérification selon la source | vérification indépendante + lien | verdict).";
+  if(inclPers)p+=" 5. Profil de la personne (paragraphes développés) + section Cohérence.";
+  if(compare && noms.length>1)p+=" Présente le tout en tableaux COMPARATIFS, une colonne par candidat.";
+  p+=" 6. Langage persuasif (extrait | procédé). 7. Ce qui n'a pas pu être vérifié + requêtes à lancer. 8. Liste de tous les liens utilisés.\n\n";
+  p+="=== ENTRÉES ===\nCandidat(s) : "+nomAff+"\nType d'audit : "+({programme:"programme",personne:"personne",les_deux:"programme et personne"}[mode])+(compare&&noms.length>1?" (comparatif)":"")+"\nDimensions : "+(dims.join(", ")||"toutes")+"\nPériode : "+periode+"\n<programme>\n[Collez ici le texte ou le PDF du programme.]\n</programme>\n<sources>\nPriorité aux sources d'État ci-dessous :\n";
+  if(srcs.length)srcs.forEach(s=>p+="- "+s.lbl+" : "+s.url+" ("+s.desc+")\n");
+  else p+="- [aucune source cochée]\n";
+  p+="</sources>\n";
+  return p;
+}
+function buildSourceList(){
+  const srcs=selectedSources();
+  if(!srcs.length)return '<li class="note">Aucune source cochée.</li>';
+  return srcs.map(s=>`<li><a href="${s.url}" target="_blank" rel="noopener">${s.lbl}</a> — ${s.desc}</li>`).join("");
+}
+function refresh(){
+  document.getElementById("outPrompt").value = buildPrompt();
+  document.getElementById("outSources").innerHTML = buildSourceList();
+}
+document.addEventListener("input",(e)=>{ if(e.target.id==="programme") suggest(); refresh(); });
+document.addEventListener("change",(e)=>{
+  if(e.target.name==="mode") refreshMode();
+  if(e.target.id==="compare") document.getElementById("extraNames").classList.toggle("hidden", !e.target.checked);
+  refresh();
+});
+function flash(id){const f=document.getElementById(id);f.classList.remove("hidden");setTimeout(()=>f.classList.add("hidden"),1800);}
+function copyText(txt, flagId){navigator.clipboard.writeText(txt).then(()=>flash(flagId));}
+document.getElementById("copyPrompt").addEventListener("click",()=>copyText(document.getElementById("outPrompt").value,"cp1"));
+document.getElementById("copySrc").addEventListener("click",()=>{const t=selectedSources().map(s=>s.lbl+" : "+s.url).join("\n")||"Aucune source cochée.";copyText(t,"cp2");});
+function download(name, txt){const b=new Blob([txt],{type:"text/plain;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href);}
+document.getElementById("dlMd").addEventListener("click",()=>download("audit-prompt.md",buildPrompt()));
+document.getElementById("dlTxt").addEventListener("click",()=>download("audit-prompt.txt",buildPrompt()));
+document.querySelectorAll("[data-llm]").forEach(b=>b.addEventListener("click",()=>{
+  navigator.clipboard.writeText(buildPrompt()).then(()=>{document.getElementById("llmNote").style.display="block";window.open(b.dataset.llm,"_blank","noopener");});
+}));
+refreshMode();refresh();
+</script>
+</body>
+</html>
