@@ -123,6 +123,10 @@
     <div class="card">
       <h2>3. Sources publiques à mobiliser</h2>
       <p class="note">Priorité aux données produites par l'État (neutralité maximale). Les sources suggérées d'après votre texte sont surlignées.</p>
+      <div class="btnrow" style="margin-bottom:8px">
+        <button type="button" class="btn sec" id="checkAll">Tout cocher</button>
+        <button type="button" class="btn sec" id="uncheckAll">Tout décocher</button>
+      </div>
       <div id="sources"></div>
     </div>
   </div>
@@ -273,6 +277,7 @@ function buildPrompt(){
   const inclPers = mode==="personne"||mode==="les_deux";
   let p="";
   p+="RÔLE\nTu es un analyste factuel impartial. Tu n'es pas un acteur politique. Tu confrontes des déclarations et promesses à des sources publiques vérifiables, sans jamais juger.\n\n";
+  p+="SUJET DE L'AUDIT : "+nomAff+"\n\n";
   if(compare && noms.length>1)
     p+="MODE COMPARATIF\nTu audites plusieurs candidats ("+noms.join(", ")+"). Tu appliques EXACTEMENT les mêmes critères, sources et niveau d'exigence à chacun. Tu présentes des tableaux comparatifs côte à côte. Tu ne favorises ni ne défavorises personne, et tu signales quand une information existe pour l'un et pas pour l'autre.\n\n";
   p+="RÈGLE DE LISIBILITÉ (le lecteur est un citoyen, pas une machine)\n- Phrases complètes, compréhensibles tout de suite. Pas de style télégraphique.\n- Aucune abréviation non explicitée (écris « Assemblée nationale », pas « AN »).\n- Contextualise tout nom propre : qui est cette personne, ce parti, ce pays, et son orientation politique documentée.\n\n";
@@ -333,6 +338,8 @@ document.addEventListener("change",(e)=>{
 });
 function flash(id){const f=document.getElementById(id);f.classList.remove("hidden");setTimeout(()=>f.classList.add("hidden"),1800);}
 function copyText(txt, flagId){navigator.clipboard.writeText(txt).then(()=>flash(flagId));}
+document.getElementById("checkAll").addEventListener("click",()=>{document.querySelectorAll('[data-src]').forEach(c=>c.checked=true);refresh();});
+document.getElementById("uncheckAll").addEventListener("click",()=>{document.querySelectorAll('[data-src]').forEach(c=>c.checked=false);refresh();});
 document.getElementById("copyPrompt").addEventListener("click",()=>copyText(document.getElementById("outPrompt").value,"cp1"));
 document.getElementById("copySrc").addEventListener("click",()=>{const t=selectedSources().map(s=>s.lbl+" : "+s.url).join("\n")||"Aucune source cochée.";copyText(t,"cp2");});
 function download(name, txt){const b=new Blob([txt],{type:"text/plain;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href);}
