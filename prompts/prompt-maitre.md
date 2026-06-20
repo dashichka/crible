@@ -17,7 +17,7 @@ Le prompt est assemblé dynamiquement selon les cases cochées ; voici toutes le
 5. RÈGLE DE LISIBILITÉ : phrases complètes, aucune abréviation non explicitée, contextualisation des noms propres.
 6. VÉRIFICATION ACTIVE ET CALCUL DIRECT : vérifier réellement, calculer soi-même les ordres de grandeur, ne jamais inventer un chiffre.
 7. SOURCES = LIENS CLIQUABLES VÉRIFIÉS.
-8. HIÉRARCHIE DES SOURCES : État/institution > organisme indépendant > presse > source partisane.
+8. HIÉRARCHIE DES SOURCES : État/institution > organisme indépendant > presse > source partisane. Les réseaux sociaux ne sont jamais une preuve d'un fait (seulement la trace d'un propos publié par la personne). Tout média cité est suivi de son orientation politique documentée entre parenthèses (ou « orientation non établie »).
 9. SOURCES CONTRADICTOIRES : présenter les deux, privilégier la plus récente et primaire, signaler le désaccord.
 10. DATATION ET FRAÎCHEUR : dater chaque donnée, préférer la plus récente, vérifier en ligne le récent.
 11. NEUTRALITÉ (5 interdits) ET ANTI-DÉSINFORMATION : pas de jugement, pas d'opinion, pas de formule vague.
@@ -27,7 +27,8 @@ Le prompt est assemblé dynamiquement selon les cases cochées ; voici toutes le
 15. MÉTHODE DE VÉRIFICATION : brouillon, questions de contrôle, version finale sans le non-étayé.
 16. LÉGENDE COULEUR : Vérifié / À nuancer / Non vérifiable / Contredit.
 17. AUDIT DU PROGRAMME (si mode programme) : faisabilité jusqu'au bout (coût, financement, déficit, dette, charge de la dette), décomposition des agrégats, impact par catégorie d'acteur, mécanismes contradictoires ; liens logiques entre promesses sans conclusion.
-18. AUDIT DE LA PERSONNE (si mode personne) : profil factuel développé, positionnement international ventilé, cohérence des faits datés.
+18. AUDIT DE LA PERSONNE (si mode personne) : profil développé ; pour l'entourage, synthétiser la position politique de chaque proche ; positionnement international par grandes aires (Europe, Amériques, Afrique, Moyen-Orient, Russie, Chine, Asie, Océanie), uniquement les aires documentées ; cohérence traitée en profondeur (plusieurs thèmes, déclarations datées face aux votes, lois, décrets, nominations et arbitrages, sans conclusion vague).
+18bis. PROCÉDURES JUDICIAIRES (obligatoire dans tous les cas, quel que soit le mode) : enquêtes, mises en examen, poursuites, condamnations, relaxes du candidat et de ses proches, datées et sourcées, présomption d'innocence respectée.
 19. GLOSSAIRE CITOYEN : définir chaque terme technique en une phrase.
 20. AUTO-CRITIQUE FINALE : lister honnêtement les angles morts.
 21. FORMAT DE SORTIE : plan numéroté du rapport attendu.
