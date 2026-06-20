@@ -13,7 +13,7 @@ Seuls sont affichés (label « vitrine ») les audits qui :
 Tout contenu non sourcé, partisan, injurieux, diffamatoire, discriminatoire, ou portant une accusation factuelle non étayée. Crible se réserve le droit de ne pas publier, ou de retirer, sans préavis.
 
 ## Attribution et responsabilité
-Chaque audit affiché est **attribué à son auteur** (pseudonyme GitHub), qui reste responsable de ses propos. Crible agit en **curateur** : la sélection ne vaut pas approbation, seulement respect de la présente charte.
+Chaque audit affiché est **attribué à son auteur**, qui reste responsable de ses propos. Crible agit en **curateur** : la sélection ne vaut pas approbation, seulement respect de la présente charte.
 
 ## Signalement et droit de réponse
 Tout contenu peut être signalé (bouton « signaler » sur chaque carte). Toute personne concernée peut demander une correction, un droit de réponse ou un retrait via le contact indiqué dans les mentions légales. Les demandes motivées sont traitées rapidement.
