@@ -47,6 +47,10 @@ docs/        méthodologie, charte de neutralité, catalogue des sources publiqu
 tests/       cas de test fictif pour éprouver la méthode
 ```
 
+## Feed communautaire (modéré)
+
+Chacun peut partager son audit via une contribution GitHub (label `partage-audit`). Après relecture, les audits conformes à la [charte de publication](CHARTE.md) — sourcés, neutres, faits distingués des interprétations — sont labellisés `vitrine` et affichés dans le feed du site, **attribués à leur auteur**. Un bouton « signaler » et un droit de réponse sont prévus (mentions légales en pied de site). Le feed est alimenté en lecture seule par l'API publique de GitHub : pas de backend, pas de base de données.
+
 ## Neutralité & limites
 
 Cet outil vise la transparence, pas une objectivité absolue. La vérification dépend des sources fournies et de l'IA utilisée : **aucune IA n'est garantie sans erreur**. Lisez toujours les résultats avec esprit critique et recoupez avec les sources primaires.
