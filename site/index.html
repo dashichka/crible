@@ -214,7 +214,7 @@
     <details class="legal">
       <summary>Mentions légales · charte · droit de réponse</summary>
       <div>
-        <p><strong>Responsable de la publication :</strong> dashichka (pseudonyme ; identité connue de l'hébergeur, conformément à la loi). Contact : [à compléter].</p>
+        <p><strong>Responsable de la publication :</strong> dashichka (pseudonyme ; identité connue de l'hébergeur, conformément à la loi). Contact : <a href="https://github.com/dashichka/crible/issues/new?labels=signalement&title=Contact%20%2F%20droit%20de%20reponse" target="_blank" rel="noopener">ouvrir une demande sur GitHub</a>.</p>
         <p><strong>Hébergeur :</strong> Clever Cloud — <a href="https://www.clever-cloud.com" target="_blank" rel="noopener">clever-cloud.com</a></p>
         <p><strong>Charte de publication :</strong> seuls les audits sourcés, neutres et distinguant les faits des interprétations sont affichés ; tout contenu diffamatoire, injurieux ou non sourcé est refusé ou retiré. <a href="https://github.com/dashichka/crible/blob/main/CHARTE.md" target="_blank" rel="noopener">Charte complète</a>.</p>
         <p><strong>Signalement et droit de réponse :</strong> bouton « signaler » sur chaque carte, ou contact ci-dessus. Toute demande motivée de correction ou de retrait est traitée rapidement.</p>
@@ -266,6 +266,7 @@ const SOURCES = [
   {id:"vie_publique", lbl:"Vie-publique.fr", cat:"Intégrité & droit", url:"https://www.vie-publique.fr", desc:"Discours publics, rapports officiels", kw:["discours","rapport","déclaration","declaration","politique publique"]},
   {id:"elections", lbl:"Résultats des élections (Intérieur)", cat:"Élections", url:"https://www.resultats-elections.interieur.gouv.fr", desc:"Résultats officiels de tous les scrutins", kw:["élection","election","scrutin","résultat","resultat","candidat","voix"]},
 ];
+const REPO = "dashichka/crible";
 
 function chkHtml(item, type){
   return `<label class="chk" data-${type}row="${item.id}"><input type="checkbox" data-${type}="${item.id}" ${item.def?"checked":""}>
@@ -286,21 +287,21 @@ function refreshMode(){
   document.querySelectorAll("#modeRow .pill").forEach(p=>p.classList.toggle("on", p.querySelector("input").checked));
 }
 function suggest(){
-  const txt = document.getElementById("programme").value.toLowerCase();
-  if(txt.length<=3) return;
-  document.querySelectorAll('[data-srcrow]').forEach(row=>{
-    const s = SOURCES.find(x=>x.id===row.dataset.srcrow);
-    const hit = s.kw.some(k=>txt.includes(k));
+  var txt = document.getElementById("programme").value.toLowerCase();
+  function apply(row, kw){
+    var hit = txt.length>3 && kw.some(function(k){return txt.includes(k);});
     row.classList.toggle("suggested", hit);
-    if(hit) row.querySelector("input").checked = true;
+    var cb = row.querySelector("input");
+    if(hit && !cb.dataset.touched) cb.checked = true; // n'écrase jamais un choix manuel de l'utilisateur
+  }
+  document.querySelectorAll('[data-srcrow]').forEach(function(row){
+    var s = SOURCES.find(function(x){return x.id===row.dataset.srcrow;});
+    apply(row, s.kw);
   });
-  PROG_DIMS.forEach(d=>{
+  PROG_DIMS.forEach(function(d){
     if(!d.kw) return;
-    const row = document.querySelector('[data-dimrow="'+d.id+'"]');
-    if(!row) return;
-    const hit = d.kw.some(k=>txt.includes(k));
-    row.classList.toggle("suggested", hit);
-    if(hit) row.querySelector("input").checked = true;
+    var row = document.querySelector('[data-dimrow="'+d.id+'"]');
+    if(row) apply(row, d.kw);
   });
 }
 function selectedDims(){return [...document.querySelectorAll('[data-dim]:checked')].map(c=>c.dataset.dim);}
@@ -320,10 +321,12 @@ function buildPrompt(){
   const mode = document.querySelector('input[name="mode"]:checked').value;
   const periode = document.getElementById("periode").value;
   const lang = document.getElementById("lang").value;
-  const dims = selectedDims().map(dimLabel);
   const srcs = selectedSources();
   const inclProg = mode==="programme"||mode==="les_deux";
   const inclPers = mode==="personne"||mode==="les_deux";
+  const progIds = PROG_DIMS.map(d=>d.id), persIds = PERS_DIMS.map(d=>d.id);
+  const selDimIds = selectedDims().filter(id => (inclProg && progIds.includes(id)) || (inclPers && persIds.includes(id)));
+  const dims = selDimIds.map(dimLabel);
   let p="";
   p+="RÔLE\nTu es un analyste factuel impartial. Tu n'es pas un acteur politique. Tu confrontes des déclarations et promesses à des sources publiques vérifiables, sans jamais juger.\n\n";
   p+="SUJET DE L'AUDIT : "+nomAff+"\n\n";
@@ -354,7 +357,7 @@ function buildPrompt(){
   }
   if(inclPers){
     p+="=== AUDIT DE LA PERSONNE : PROFIL FACTUEL DÉVELOPPÉ ===\nChaque point est un paragraphe développé et contextualisé (pas une liste de mots), avec sources, liens et statut couleur. Dimensions demandées :\n";
-    selectedDims().filter(d=>PERS_DIMS.some(x=>x.id===d)).forEach(d=>p+="- "+dimLabel(d)+"\n");
+    selDimIds.filter(d=>PERS_DIMS.some(x=>x.id===d)).forEach(d=>p+="- "+dimLabel(d)+"\n");
     p+="Pour le positionnement international, ventile et explique par bloc : Commission européenne et Union européenne ; pays européens ; États-Unis et OTAN ; Chine ; Russie ; autres pays. Pour la cohérence, mets en regard des faits datés (« a déclaré X en [date] » / « a fait Y en [date] »), sans accusation, en signalant aussi les constances.\nRègle anti-dérive : « influence potentielle » = uniquement des liens factuels documentés. Aucune insinuation.\n\n";
   }
   p+="GLOSSAIRE CITOYEN\nDéfinis en une phrase simple chaque terme technique employé (déficit, dette, charge de la dette, cotisation, article 49.3, impôt sur la fortune…), pour un lecteur non spécialiste ; regroupe-les en fin de rapport.\n\n";
@@ -380,47 +383,61 @@ function refresh(){
   document.getElementById("outPrompt").value = buildPrompt();
   document.getElementById("outSources").innerHTML = buildSourceList();
 }
-document.addEventListener("input",(e)=>{ if(e.target.id==="programme") suggest(); refresh(); });
-document.addEventListener("change",(e)=>{
+var debTimer;
+document.addEventListener("input",function(e){
+  if(e.target.id==="programme"){ clearTimeout(debTimer); debTimer=setTimeout(function(){suggest();refresh();},160); }
+  else { refresh(); }
+});
+document.addEventListener("change",function(e){
+  if(e.target.matches && e.target.matches('[data-src],[data-dim]')) e.target.dataset.touched="1";
   if(e.target.name==="mode") refreshMode();
   if(e.target.id==="compare") document.getElementById("extraNames").classList.toggle("hidden", !e.target.checked);
   refresh();
 });
 function flash(id){const f=document.getElementById(id);f.classList.remove("hidden");setTimeout(()=>f.classList.add("hidden"),1800);}
-function copyText(txt, flagId){navigator.clipboard.writeText(txt).then(()=>flash(flagId));}
-document.getElementById("checkAll").addEventListener("click",()=>{document.querySelectorAll('[data-src]').forEach(c=>c.checked=true);refresh();});
-document.getElementById("uncheckAll").addEventListener("click",()=>{document.querySelectorAll('[data-src]').forEach(c=>c.checked=false);refresh();});
+function fallbackCopy(txt, flagId){try{var ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.focus();ta.select();document.execCommand("copy");document.body.removeChild(ta);flash(flagId);}catch(e){window.prompt("Copie automatique impossible. Copiez le texte (Ctrl/Cmd+C) :",txt);}}
+function copyText(txt, flagId){ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){flash(flagId);},function(){fallbackCopy(txt,flagId);});} else {fallbackCopy(txt,flagId);} }
+document.getElementById("checkAll").addEventListener("click",function(){document.querySelectorAll('[data-src]').forEach(function(c){c.checked=true;c.dataset.touched="1";});refresh();});
+document.getElementById("uncheckAll").addEventListener("click",function(){document.querySelectorAll('[data-src]').forEach(function(c){c.checked=false;c.dataset.touched="1";});refresh();});
 document.getElementById("copyPrompt").addEventListener("click",()=>copyText(document.getElementById("outPrompt").value,"cp1"));
 document.getElementById("copySrc").addEventListener("click",()=>{const t=selectedSources().map(s=>s.lbl+" : "+s.url).join("\n")||"Aucune source cochée.";copyText(t,"cp2");});
 function download(name, txt){const b=new Blob([txt],{type:"text/plain;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href);}
-document.getElementById("dlMd").addEventListener("click",()=>download("audit-prompt.md",buildPrompt()));
-document.getElementById("dlTxt").addEventListener("click",()=>download("audit-prompt.txt",buildPrompt()));
-document.querySelectorAll("[data-llm]").forEach(b=>b.addEventListener("click",()=>{
-  navigator.clipboard.writeText(buildPrompt()).then(()=>{document.getElementById("llmNote").style.display="block";window.open(b.dataset.llm,"_blank","noopener");});
-}));
+document.getElementById("dlMd").addEventListener("click",function(){download("audit-prompt.md",document.getElementById("outPrompt").value);});
+document.getElementById("dlTxt").addEventListener("click",function(){download("audit-prompt.txt",document.getElementById("outPrompt").value);});
+document.querySelectorAll("[data-llm]").forEach(function(b){b.addEventListener("click",function(){
+  var txt=document.getElementById("outPrompt").value;
+  function go(){document.getElementById("llmNote").style.display="block";window.open(b.dataset.llm,"_blank","noopener");}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(go,go);} else {go();}
+});});
 function escapeHtml(s){return (s||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
 function shareUrl(){
   var cand=(names()[0]||"").trim();
   var body="## Candidat / sujet audité\n"+cand+"\n\n## Résultat de mon audit\n(Collez ici le résultat produit par votre IA. Conservez les sources et les liens.)\n\n## Sources utilisées (liens officiels)\n\n\n---\nJe confirme que cet audit est sourcé, neutre, sans accusation non étayée, et que j'en suis l'auteur (charte de publication).";
-  return "https://github.com/dashichka/crible/issues/new?labels=partage-audit&title="+encodeURIComponent("Audit : "+cand)+"&body="+encodeURIComponent(body);
+  return "https://github.com/"+REPO+"/issues/new?labels=partage-audit&title="+encodeURIComponent("Audit : "+cand)+"&body="+encodeURIComponent(body);
 }
 document.getElementById("shareBtn").addEventListener("click",function(){window.open(shareUrl(),"_blank","noopener");});
 function reportUrl(it){
-  return "https://github.com/dashichka/crible/issues/new?labels=signalement&title="+encodeURIComponent("Signalement")+"&body="+encodeURIComponent("Je signale ce contenu : "+it.html_url+"\n\nMotif :\n");
+  return "https://github.com/"+REPO+"/issues/new?labels=signalement&title="+encodeURIComponent("Signalement")+"&body="+encodeURIComponent("Je signale ce contenu : "+(it.html_url||"")+"\n\nMotif :\n");
 }
 async function loadFeed(){
   var wrap=document.getElementById("feed");
   try{
-    var r=await fetch("https://api.github.com/repos/dashichka/crible/issues?labels=vitrine&state=open&per_page=20",{headers:{Accept:"application/vnd.github+json"}});
-    if(!r.ok) throw 0;
+    var r=await fetch("https://api.github.com/repos/"+REPO+"/issues?labels=vitrine&state=open&per_page=20",{headers:{Accept:"application/vnd.github+json"}});
+    if(!r.ok) throw new Error(r.status===403?"limite":"http");
     var items=(await r.json()).filter(function(it){return !it.pull_request;});
     if(!items.length){wrap.innerHTML='<p class="note">Aucun audit partagé pour le moment. Soyez la première personne à contribuer via « Partager mon audit ».</p>';return;}
     wrap.innerHTML=items.map(function(it){
       var cand=escapeHtml(it.title.replace(/^Audit\s*:?\s*/i,"").trim()||"(sans titre)");
-      var extr=escapeHtml((it.body||"").replace(/[#>*_`\-]/g," ").replace(/\s+/g," ").trim().slice(0,220));
-      return '<article class="feed-card"><div class="feed-cand">'+cand+'</div><div class="feed-extr">'+extr+'…</div><div class="feed-meta">partagé par '+escapeHtml(it.user.login)+' · <a href="'+it.html_url+'" target="_blank" rel="noopener">voir l\'audit complet</a> · <a href="'+reportUrl(it)+'" target="_blank" rel="noopener">signaler</a></div></article>';
+      var raw=(it.body||"").replace(/[#>*_`\-]/g," ").replace(/\s+/g," ").trim();
+      var extr=escapeHtml(raw.slice(0,220))+(raw.length>220?"…":"");
+      var login=escapeHtml((it.user&&it.user.login)||"anonyme");
+      var url=escapeHtml(it.html_url||"#");
+      return '<article class="feed-card"><div class="feed-cand">'+cand+'</div><div class="feed-extr">'+extr+'</div><div class="feed-meta">partagé par '+login+' · <a href="'+url+'" target="_blank" rel="noopener">voir l\'audit complet</a> · <a href="'+reportUrl(it)+'" target="_blank" rel="noopener">signaler</a></div></article>';
     }).join("");
-  }catch(e){ wrap.innerHTML='<p class="note">Le feed n\'a pas pu être chargé pour le moment (limite GitHub atteinte ?). Réessayez plus tard.</p>'; }
+  }catch(e){
+    var rate = e && e.message==="limite";
+    wrap.innerHTML='<p class="note">'+(rate?"Le feed est momentanément indisponible (limite de requêtes GitHub atteinte). Réessayez dans quelques minutes.":"Le feed n\'a pas pu être chargé pour le moment. Réessayez plus tard.")+'</p>';
+  }
 }
 refreshMode();refresh();loadFeed();
 </script>
