@@ -33,7 +33,7 @@ Le prompt est assemblé dynamiquement selon les cases cochées ; voici toutes le
 20. AUTO-CRITIQUE FINALE : lister honnêtement les angles morts.
 21. FORMAT DE SORTIE : plan numéroté du rapport attendu.
 22. EXEMPLE DE FORMAT ATTENDU : un exemple fictif pour caler le style.
-23. ENTRÉES : candidat, type d'audit, dimensions, période, programme, sources.
+23. ENTRÉES : candidat, type d'audit, dimensions, période, programme (collé en texte OU joint en PDF directement à l'IA, le prompt demande de lire la pièce jointe), sources.
 
 ## Règles invariantes (l'âme de l'outil)
 

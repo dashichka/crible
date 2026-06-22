@@ -140,7 +140,7 @@
 
     <div class="card">
       <h2>2. Programme à analyser</h2>
-      <p class="note">Collez le texte du programme (ou des extraits). L'outil détecte les thèmes et <strong>suggère automatiquement</strong> les bonnes sources publiques <em>et</em> les dimensions pertinentes.</p>
+      <p class="note">Deux options. Collez le texte du programme ici : cela active la suggestion automatique des bonnes sources. Ou bien, après avoir copié le prompt, joignez directement le PDF du programme à votre IA (recommandé pour un long programme : l'IA le lit mieux qu'un texte ré-extrait). La zone ci-dessous reste donc facultative.</p>
       <textarea id="programme" placeholder="Collez le texte du programme ici…"></textarea>
     </div>
 
@@ -331,6 +331,7 @@ function buildPrompt(){
   p+="RÔLE\nTu es un analyste factuel impartial. Tu n'es pas un acteur politique. Tu confrontes des déclarations et promesses à des sources publiques vérifiables, sans jamais juger.\n\n";
   p+="SUJET DE L'AUDIT : "+nomAff+"\n\n";
   p+="LANGUE DE LA RÉPONSE : rédige l'intégralité du rapport en "+lang+".\n\n";
+  p+="DOCUMENT À AUDITER : le programme t'est fourni soit collé dans la balise <programme> ci-dessous, soit en pièce jointe (PDF) à cette conversation. Lis le document fourni dans son intégralité ; n'invente jamais son contenu, et si aucun document n'est fourni, demande-le avant d'analyser.\n\n";
   if(compare && noms.length>1)
     p+="MODE COMPARATIF\nTu audites plusieurs candidats ("+noms.join(", ")+"). Tu appliques EXACTEMENT les mêmes critères, sources et niveau d'exigence à chacun. Tu présentes des tableaux comparatifs côte à côte. Tu ne favorises ni ne défavorises personne, et tu signales quand une information existe pour l'un et pas pour l'autre.\n\n";
   p+="RÈGLE DE LISIBILITÉ (le lecteur est un citoyen, pas une machine)\n- Phrases complètes, compréhensibles tout de suite. Pas de style télégraphique.\n- Aucune abréviation non explicitée (écris « Assemblée nationale », pas « AN »).\n- Contextualise tout nom propre : qui est cette personne, ce parti, ce pays, et son orientation politique documentée.\n\n";
@@ -373,7 +374,7 @@ function buildPrompt(){
   if(compare && noms.length>1)p+=" Présente le tout en tableaux COMPARATIFS, une colonne par candidat.";
   p+=" 6. Langage persuasif (extrait | procédé). 6bis. Procédures judiciaires (candidat et proches, présomption d'innocence). 7. Ce qui n'a pas pu être vérifié + requêtes à lancer. 8. Liste de tous les liens utilisés. 9. Glossaire citoyen. 10. Auto-critique : angles morts et limites de l'analyse.\n\n";
   p+="EXEMPLE DE FORMAT ATTENDU (fictif, pour le style — ne le recopie pas)\nMesure : « verser 200 € par mois à chaque famille avec enfants ».\n- Calcul direct : 200 € × 12 mois × 8 millions de familles = 19,2 milliards d'euros par an.\n- Coût selon les instituts : [organisme, 18 milliards par an, lien].\n- Financement proposé par le candidat : non précisé.\n- Impact : représenterait environ 13 % du déficit annuel de la France (lien).\n- Statut : 🟠 À nuancer (financement non précisé).\n\n";
-  p+="=== ENTRÉES ===\nCandidat(s) : "+nomAff+"\nType d'audit : "+({programme:"programme",personne:"personne",les_deux:"programme et personne"}[mode])+(compare&&noms.length>1?" (comparatif)":"")+"\nDimensions : "+(dims.join(", ")||"toutes")+"\nPériode : "+periode+"\n<programme>\n[Collez ici le texte ou le PDF du programme.]\n</programme>\n<sources>\nPriorité aux sources d'État ci-dessous :\n";
+  p+="=== ENTRÉES ===\nCandidat(s) : "+nomAff+"\nType d'audit : "+({programme:"programme",personne:"personne",les_deux:"programme et personne"}[mode])+(compare&&noms.length>1?" (comparatif)":"")+"\nDimensions : "+(dims.join(", ")||"toutes")+"\nPériode : "+periode+"\n<programme>\n[Le programme est fourni soit collé ici, soit en pièce jointe PDF à cette conversation. S'il est joint en PDF, analyse-le dans son intégralité.]\n</programme>\n<sources>\nPriorité aux sources d'État ci-dessous :\n";
   if(srcs.length)srcs.forEach(s=>p+="- "+s.lbl+" : "+s.url+" ("+s.desc+")\n");
   else p+="- [aucune source cochée]\n";
   p+="</sources>\n";
