@@ -130,8 +130,12 @@
       <select id="periode">
         <option value="le mandat ou programme en cours">Le mandat / programme en cours</option>
         <option value="toute la carrière publique">Toute la carrière publique</option>
-        <option value="une période précise (à indiquer dans votre IA)">Une période précise</option>
+        <option value="une période précise">Une période précise</option>
       </select>
+      <div id="periodeDates" class="hidden" style="display:flex;gap:8px;margin-top:6px">
+        <label style="flex:1">Du <input type="date" id="dateDebut"></label>
+        <label style="flex:1">Au <input type="date" id="dateFin"></label>
+      </div>
 
       <label for="lang" style="margin-top:14px">Langue du rapport</label>
       <select id="lang">
@@ -310,6 +314,7 @@ function refreshMode(){
   document.getElementById("dimsPersonne").classList.toggle("hidden", mode==="programme");
   document.querySelectorAll("#modeRow .pill").forEach(p=>p.classList.toggle("on", p.querySelector("input").checked));
 }
+function togglePeriode(){ document.getElementById("periodeDates").classList.toggle("hidden", document.getElementById("periode").value.indexOf("précise")<0); }
 function suggest(){
   var txt = document.getElementById("programme").value.toLowerCase();
   function apply(row, kw){
@@ -348,6 +353,11 @@ function buildPrompt(){
   const pdfJoint = document.getElementById("pdfJoint").checked;
   const videos = document.getElementById("videos").value.trim();
   const transcript = document.getElementById("transcript").value.trim();
+  let periodeAff = periode;
+  if(periode.indexOf("précise")>=0){
+    var d1=document.getElementById("dateDebut").value, d2=document.getElementById("dateFin").value;
+    periodeAff = (d1||d2) ? ("du "+(d1||"…")+" au "+(d2||"…")) : "une période précise (à préciser)";
+  }
   const srcs = selectedSources();
   const inclProg = mode==="programme"||mode==="les_deux";
   const inclPers = mode==="personne"||mode==="les_deux";
@@ -406,7 +416,7 @@ function buildPrompt(){
   if(compare && noms.length>1)p+=" Présente le tout en tableaux COMPARATIFS, une colonne par candidat.";
   p+=" 6. Langage persuasif (extrait | procédé). 6bis. Procédures judiciaires (candidat et proches, présomption d'innocence). 7. Ce qui n'a pas pu être vérifié + requêtes à lancer. 8. Liste de tous les liens utilisés. 9. Glossaire citoyen. 10. Auto-critique : angles morts et limites de l'analyse.\n\n";
   p+="EXEMPLE DE FORMAT ATTENDU (fictif, pour le style — ne le recopie pas)\nMesure : « verser 200 € par mois à chaque famille avec enfants ».\n- Calcul direct : 200 € × 12 mois × 8 millions de familles = 19,2 milliards d'euros par an.\n- Coût selon les instituts : [organisme, 18 milliards par an, lien].\n- Financement proposé par le candidat : non précisé.\n- Impact : représenterait environ 13 % du déficit annuel de la France (lien).\n- Statut : 🟠 À nuancer (financement non précisé).\n\n";
-  p+="=== ENTRÉES ===\nCandidat(s) : "+nomAff+"\nType d'audit : "+({programme:"programme",personne:"personne",les_deux:"programme et personne"}[mode])+(compare&&noms.length>1?" (comparatif)":"")+"\nDimensions : "+(dims.join(", ")||"toutes")+"\nPériode : "+periode+"\n<programme>\n[Le programme est fourni soit collé ici, soit en pièce jointe PDF à cette conversation. S'il est joint en PDF, analyse-le dans son intégralité.]\n</programme>\n<sources>\nPriorité aux sources d'État ci-dessous :\n";
+  p+="=== ENTRÉES ===\nCandidat(s) : "+nomAff+"\nType d'audit : "+({programme:"programme",personne:"personne",les_deux:"programme et personne"}[mode])+(compare&&noms.length>1?" (comparatif)":"")+"\nDimensions : "+(dims.join(", ")||"toutes")+"\nPériode : "+periodeAff+"\n<programme>\n[Le programme est fourni soit collé ici, soit en pièce jointe PDF à cette conversation. S'il est joint en PDF, analyse-le dans son intégralité.]\n</programme>\n<sources>\nPriorité aux sources d'État ci-dessous :\n";
   if(srcs.length)srcs.forEach(s=>p+="- "+s.lbl+" : "+s.url+" ("+s.desc+")\n");
   else p+="- [aucune source cochée]\n";
   p+="</sources>\n";
@@ -431,6 +441,7 @@ document.addEventListener("change",function(e){
   if(e.target.matches && e.target.matches('[data-src],[data-dim]')) e.target.dataset.touched="1";
   if(e.target.name==="mode") refreshMode();
   if(e.target.id==="compare") document.getElementById("extraNames").classList.toggle("hidden", !e.target.checked);
+  if(e.target.id==="periode") togglePeriode();
   refresh();
 });
 function flash(id){const f=document.getElementById(id);f.classList.remove("hidden");setTimeout(()=>f.classList.add("hidden"),1800);}
@@ -478,7 +489,7 @@ async function loadFeed(){
     wrap.innerHTML='<p class="note">'+(rate?"Le feed est momentanément indisponible (limite de requêtes GitHub atteinte). Réessayez dans quelques minutes.":"Le feed n\'a pas pu être chargé pour le moment. Réessayez plus tard.")+'</p>';
   }
 }
-refreshMode();refresh();loadFeed();
+refreshMode();togglePeriode();refresh();loadFeed();
 </script>
 </body>
 </html>
